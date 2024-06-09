@@ -14,3 +14,12 @@
 5. 安装 Babel  
    `yarn add --dev babel-jest @babel/core @babel/preset-env`
    `yarn add --dev @babel/preset-typescript`
+
+6. 单测调试模式
+   `yarn test --watch`
+
+## TDD 的三个动作：
+
+1. 写单元测试
+2. 实现逻辑让测试通过
+3. 重构代码，提高可读性和性能
