@@ -1,4 +1,9 @@
 import { extend } from "../shared/index";
+
+// 全局的变量
+let activeEffect;
+let shouldTrack;
+
 class ReactiveEffect {
   private _fn: any;
   deps = [];
@@ -10,8 +15,18 @@ class ReactiveEffect {
   }
 
   run() {
+    if (!this.active) {
+      return this._fn();
+    }
+
+    // 设置收集状态
+    shouldTrack = true;
     activeEffect = this;
-    return this._fn();
+    const result = this._fn();
+    // 重置收集状态
+    shouldTrack = false;
+
+    return result;
   }
 
   stop() {
@@ -29,10 +44,14 @@ function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect);
   });
+  // 清空effect.deps
+  effect.deps.length = 0;
 }
 
 const targetMap = new Map();
 export function track(target, key) {
+  if (!isTacking()) return;
+
   // ! target -> key -> dep
   let depsMap = targetMap.get(target);
   if (!depsMap) {
@@ -46,9 +65,8 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
 
-  if (!activeEffect) {
-    return;
-  }
+  // 判断dep之前有没有添加过activeEffect 如果添加过就无需再做添加操作
+  if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
 }
@@ -66,8 +84,6 @@ export function trigger(target, key) {
   }
 }
 
-// 全局的activeEffect
-let activeEffect;
 export function effect(fn, options: any = {}) {
   // fn
   const _effect = new ReactiveEffect(fn, options.scheduler);
@@ -83,4 +99,8 @@ export function effect(fn, options: any = {}) {
 
 export function stop(runner) {
   runner.effect.stop();
+}
+
+function isTacking() {
+  return shouldTrack && activeEffect !== undefined;
 }
