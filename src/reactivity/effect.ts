@@ -33,7 +33,7 @@ function cleanupEffect(effect) {
 
 const targetMap = new Map();
 export function track(target, key) {
-  // target -> key -> dep
+  // ! target -> key -> dep
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -66,6 +66,7 @@ export function trigger(target, key) {
   }
 }
 
+// 全局的activeEffect
 let activeEffect;
 export function effect(fn, options: any = {}) {
   // fn
