@@ -7,6 +7,7 @@ class RefImpl {
   private _value: any;
   private rawValue: any;
   public dep;
+  public __v_isRef = true;
 
   constructor(value) {
     this.rawValue = value;
@@ -41,4 +42,12 @@ export function trackRefValue(ref) {
 
 export function ref(value) {
   return new RefImpl(value);
+}
+
+export function isRef(ref) {
+  return !!ref.__v_isRef;
+}
+
+export function unRef(ref) {
+  return isRef(ref) ? ref.value : ref;
 }
