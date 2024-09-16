@@ -66,6 +66,10 @@ export function track(target, key) {
   }
 
   // 判断dep之前有没有添加过activeEffect 如果添加过就无需再做添加操作
+  trackEffects(dep);
+}
+
+export function trackEffects(dep) {
   if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
@@ -74,7 +78,10 @@ export function track(target, key) {
 export function trigger(target, key) {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
+  triggerEffects(dep);
+}
 
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler();
@@ -101,6 +108,6 @@ export function stop(runner) {
   runner.effect.stop();
 }
 
-function isTacking() {
+export function isTacking() {
   return shouldTrack && activeEffect !== undefined;
 }
