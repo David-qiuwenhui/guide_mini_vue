@@ -14,15 +14,17 @@ export function setupComponent(instance) {
 
   setupStatefulComponent(instance);
 }
+
 function setupStatefulComponent(instance: any) {
-  const Componet = instance.type;
-  const { setup } = Componet;
+  const Component = instance.type;
+  const { setup } = Component;
 
   if (setup) {
     const setupResult = setup();
     handleSetupResult(instance, setupResult);
   }
 }
+
 function handleSetupResult(instance, setupResult: any) {
   // function object
   // TODO: function
@@ -32,6 +34,7 @@ function handleSetupResult(instance, setupResult: any) {
 
   finishComponentSetup(instance);
 }
+
 function finishComponentSetup(instance: any) {
   // Implement
   const Component = instance.type;

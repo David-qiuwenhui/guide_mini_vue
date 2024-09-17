@@ -3,7 +3,11 @@ import { h } from "../../lib/guide-mini-vue.esm.js";
 export const App = {
   // 必须要写 render
   render() {
-    return h("div", "hi " + this.msg);
+    return h("div", { id: "root", class: ["red", "hard"] }, [
+      h("p", { class: "blue" }, "child1"),
+      h("p", { class: "blue" }, "child2"),
+    ]);
+    // return h("div", { class: "red" }, "hi " + "mini-vue");
   },
   setup() {
     // composition api
