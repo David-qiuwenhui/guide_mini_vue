@@ -25,7 +25,7 @@ function processElement(vnode, container) {
 function mountElement(vnode: any, container: any) {
   const { type, props, children } = vnode;
   // element
-  const el = document.createElement(type);
+  const el = (vnode.el = document.createElement(type));
 
   // props
   for (const key in props) {
@@ -53,15 +53,19 @@ function processComponent(vnode: any, container: any) {
   mountComponent(vnode, container);
 }
 
-function mountComponent(vnode: any, container) {
-  const instance = createComponentInstance(vnode);
+function mountComponent(initialVNode: any, container) {
+  const instance = createComponentInstance(initialVNode);
   setupComponent(instance);
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, initialVNode, container);
 }
 
-function setupRenderEffect(instance, container) {
-  const subTree = instance.render();
+function setupRenderEffect(instance, initialVNode, container) {
+  const { proxy } = instance;
+  const subTree = instance.render.call(proxy);
+
   // vnode -> patch
   // vnode -> element -> mountElement
   patch(subTree, container);
+  // element -> mount
+  initialVNode.el = subTree.el;
 }
