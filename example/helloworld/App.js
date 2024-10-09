@@ -7,7 +7,20 @@ export const App = {
     window.self = this;
     // setupState
     // this.$el -> get root component
-    return h("div", { id: "root", class: "red" }, "hi " + this.msg);
+    return h(
+      "div",
+      {
+        id: "root",
+        class: "red",
+        onClick() {
+          console.log("click");
+        },
+        onMousedown() {
+          console.log("onMousedown");
+        },
+      },
+      "hi " + this.msg
+    );
     // return h("div", { id: "root", class: ["red", "hard"] }, [
     //   h("p", { class: "blue" }, "child1"),
     //   h("p", { class: "blue" }, "child2"),

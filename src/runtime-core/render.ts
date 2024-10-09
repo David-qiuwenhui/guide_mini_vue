@@ -31,7 +31,16 @@ function mountElement(vnode: any, container: any) {
   // props
   for (const key in props) {
     const value = props[key];
-    el.setAttribute(key, value);
+    // on + Event name
+    const isOn = (key: string) => /^on[A-Z]/.test(key);
+    if (isOn(key)) {
+      // 绑定事件
+      const event = key.slice(2).toLowerCase();
+      el.addEventListener(event, value);
+    } else {
+      // 绑定属性
+      el.setAttribute(key, value);
+    }
   }
 
   // children
