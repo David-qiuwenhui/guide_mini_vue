@@ -4,16 +4,19 @@ export function initSlots(instance, children) {
   const { vnode } = instance;
   // 判断 vnode 的 children 是否是 slots
   if (vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) {
-    normalizeObjectSlots(children, instance.slots);
+    normalizeObjectSlots(children, instance);
   }
 }
 
-function normalizeObjectSlots(children: any, slots: any) {
-  for (const key in children) {
-    const value = children[key];
-    // slot
-    slots[key] = (props) => normalizeSlotValue(value(props));
+function normalizeObjectSlots(children: any, instance: any) {
+  const slots = {};
+  for (const propKey in children) {
+    const propValue = children[propKey];
+    // 如果 propValue 是函数，则将其转换为一个函数，接收 props 参数
+    slots[propKey] = (props) => normalizeSlotValue(propValue(props));
   }
+
+  instance.slots = slots;
 }
 
 function normalizeSlotValue(value) {

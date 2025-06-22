@@ -11,6 +11,10 @@ export const App = {
       {
         header: ({ age }) => h("p", {}, "header: foo slot content" + age),
         footer: () => h("p", {}, "footer: foo slot content 2"),
+        default: () => [
+          h("p", {}, "default: foo slot content 1"),
+          h("p", {}, "default: foo slot content 2"),
+        ],
       }
     );
 
