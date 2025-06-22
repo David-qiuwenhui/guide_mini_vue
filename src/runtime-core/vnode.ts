@@ -1,5 +1,6 @@
 import { ShapeFlags } from "../shared/ShapeFlags";
 
+// 创建虚拟节点
 export function createVNode(type, props?, children?) {
   const vnode = {
     type,
@@ -9,6 +10,7 @@ export function createVNode(type, props?, children?) {
     el: null,
   };
 
+  // 判断children类型
   if (typeof children === "string") {
     vnode.shapeFlag |= ShapeFlags.TEXT_CHILDREN;
   } else if (Array.isArray(children)) {
@@ -26,6 +28,11 @@ export function createVNode(type, props?, children?) {
   return vnode;
 }
 
+/**
+ * 判断元素类型
+ * @param type
+ * @returns
+ */
 function getShapeFlag(type) {
   return typeof type === "string"
     ? ShapeFlags.ELEMENT

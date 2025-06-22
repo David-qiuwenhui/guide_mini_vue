@@ -8,13 +8,14 @@ export const App = {
     return h("div", {}, [
       h("div", {}, "App"),
       h(Foo, {
-        // on + Event
+        // emit: on + EventName
+        // 1. onAdd
         onAdd(a, b) {
-          console.log("onAdd", { a, b });
+          console.log("App accept emit onAdd", { a, b });
         },
-        // add-foo -> addFoo
+        // 2. onAddFoo add-foo -> addFoo
         onAddFoo(a, b) {
-          console.log("onAddFoo", { a, b });
+          console.log("App accept emit onAddFoo", { a, b });
         },
       }),
     ]);

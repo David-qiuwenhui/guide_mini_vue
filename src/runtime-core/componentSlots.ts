@@ -2,6 +2,7 @@ import { ShapeFlags } from "../shared/ShapeFlags";
 
 export function initSlots(instance, children) {
   const { vnode } = instance;
+  // 判断 vnode 的 children 是否是 slots
   if (vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) {
     normalizeObjectSlots(children, instance.slots);
   }

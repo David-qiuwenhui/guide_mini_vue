@@ -7,6 +7,7 @@ export const Foo = {
 
     // 3. shallow readonly
     props.count++;
+    console.log("props.count: ", props.count++);
     console.log(props);
   },
 

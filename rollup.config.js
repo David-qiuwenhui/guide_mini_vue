@@ -3,8 +3,8 @@ import pkg from "./package.json" assert { type: "json" };
 export default {
   input: "./src/index.ts",
   output: [
-    // 1. cjs -> commonjs
-    // 2. esm
+    // 1. cjs -> commonjs -> package.json -> main
+    // 2. esm -> es module -> package.json -> module
     {
       format: "cjs",
       file: pkg.main,

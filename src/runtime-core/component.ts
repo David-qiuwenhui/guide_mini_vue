@@ -13,25 +13,29 @@ export function createComponentInstance(vnode) {
     slots: {},
     emit: () => {},
   };
-  // emit
+  // 绑定 emit 方法到组件实例
+  // 这样在组件内部可以通过 this.emit 调用 emit 方法
   component.emit = emit.bind(null, component) as any;
 
   return component;
 }
 
 export function setupComponent(instance) {
-  // TODO:
+  // 1. 初始化props
   initProps(instance, instance.vnode.props);
+  // 2. 初始化slots
   initSlots(instance, instance.vnode.children);
-
+  // 3. 初始化状态
   setupStatefulComponent(instance);
 }
 
 function setupStatefulComponent(instance: any) {
   const Component = instance.type;
-  // ctx
+  // 创建一个代理对象，使用 PublicInstanceProxyHandlers 处理对实例属性的访问
+  // 这使得在template中可以直接访问这些属性，而不需要手动解构或访问
   instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
 
+  // 调用 setup
   const { setup } = Component;
   if (setup) {
     const setupResult = setup(shallowReadonly(instance.props), {

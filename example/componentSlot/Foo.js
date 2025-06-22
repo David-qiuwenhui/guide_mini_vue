@@ -4,14 +4,12 @@ export const Foo = {
   name: "Foo",
   render() {
     const foo = h("p", {}, "foo");
-
     // Foo .vnode. children
-    console.log("this.$slots", this.$slots);
+    console.log("Foo.js ~ render ~ this.$slots: ", this.$slots);
 
-    // renderSlots
     // 具名插槽
     // 1. 获取到需要渲染的元素
-    // 2. 获取到渲染的位置
+    // 2. 获取到元素需要渲染的位置
     const age = 18;
     return h("div", {}, [
       renderSlots(this.$slots, "header", { age }),

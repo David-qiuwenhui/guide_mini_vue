@@ -3,7 +3,7 @@ import { h } from "../../lib/guide-mini-vue.esm.js";
 export const Foo = {
   setup(props, { emit }) {
     const emitAdd = () => {
-      console.log("emit Add");
+      console.log("Foo emit Add and AddFoo");
       emit("add", 1, 2);
       emit("add-foo", 3, 4);
     };
