@@ -38,9 +38,12 @@ function setupStatefulComponent(instance: any) {
   // 调用 setup
   const { setup } = Component;
   if (setup) {
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     });
+    setCurrentInstance(null);
+
     handleSetupResult(instance, setupResult);
   }
 }
@@ -59,4 +62,16 @@ function finishComponentSetup(instance: any) {
   // Implement
   const Component = instance.type;
   instance.render = Component.render;
+}
+
+let currentInstance = null;
+
+// 获取当前组件实例: 在 setup 中使用，可以获取到当前正在执行的组件实例
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+// 设置当前组件实例: 在 setup 中调用，可以设置当前正在执行的组件实例
+function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
