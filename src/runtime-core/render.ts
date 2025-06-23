@@ -4,17 +4,17 @@ import { Fragment, Text } from "./vnode";
 
 export function render(vnode, container) {
   // 调用patch
-  patch(vnode, container);
+  patch(vnode, container, null);
 }
 
-function patch(vnode, container) {
+function patch(vnode, container, parentComponent) {
   // 基于 vnode 的类型进行不同类型的组件处理
   const { type, shapeFlag } = vnode;
   // Fragment -> 只渲染 children
   switch (type) {
     case Fragment:
       // 处理 Fragment 类型
-      processFragment(vnode, container);
+      processFragment(vnode, container, parentComponent);
       break;
     case Text:
       // 处理 Text 类型
@@ -23,10 +23,10 @@ function patch(vnode, container) {
     default:
       if (shapeFlag & ShapeFlags.ELEMENT) {
         // 处理 element 类型
-        processElement(vnode, container);
+        processElement(vnode, container, parentComponent);
       } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
         // 处理 component 类型
-        processComponent(vnode, container);
+        processComponent(vnode, container, parentComponent);
       }
       break;
   }
@@ -42,18 +42,18 @@ function processText(vnode, container) {
 }
 
 // 处理 Fragment 类型
-function processFragment(vnode: any, container: any) {
+function processFragment(vnode: any, container: any, parentComponent) {
   // Fragment 只渲染 children
-  mountChildren(vnode, container);
+  mountChildren(vnode, container, parentComponent);
 }
 
 // 处理 Element 类型
-function processElement(vnode, container) {
-  mountElement(vnode, container);
+function processElement(vnode, container, parentComponent) {
+  mountElement(vnode, container, parentComponent);
 }
 
 // 挂载 Element 元素
-function mountElement(vnode: any, container: any) {
+function mountElement(vnode: any, container: any, parentComponent) {
   const { type, props, children, shapeFlag } = vnode;
   // 创建真实 DOM 元素
   const el = (vnode.el = document.createElement(type));
@@ -77,7 +77,7 @@ function mountElement(vnode: any, container: any) {
   if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-    mountChildren(vnode, el);
+    mountChildren(vnode, el, parentComponent);
   }
 
   // 将 el 添加到 container 中
@@ -85,21 +85,21 @@ function mountElement(vnode: any, container: any) {
 }
 
 // 遍历 vnode 的 children 做 patch 操作
-function mountChildren(vnode, container) {
+function mountChildren(vnode, container, parentComponent) {
   vnode.children.forEach((v) => {
-    patch(v, container);
+    patch(v, container, parentComponent);
   });
 }
 
 // 处理 component 类型
-function processComponent(vnode: any, container: any) {
-  mountComponent(vnode, container);
+function processComponent(vnode: any, container: any, parentComponent) {
+  mountComponent(vnode, container, parentComponent);
 }
 
 // 组件初始化
-function mountComponent(initialVNode: any, container) {
+function mountComponent(initialVNode: any, container, parentComponent) {
   // 1. 创建 component instance 对象
-  const instance = createComponentInstance(initialVNode);
+  const instance = createComponentInstance(initialVNode, parentComponent);
   // 2. setup component
   setupComponent(instance);
   // 3. setup render effect
@@ -112,7 +112,7 @@ function setupRenderEffect(instance, initialVNode, container) {
 
   // vnode -> patch
   // vnode -> element -> mountElement
-  patch(subTree, container);
+  patch(subTree, container, instance);
   // element -> mount
   initialVNode.el = subTree.el;
 }
