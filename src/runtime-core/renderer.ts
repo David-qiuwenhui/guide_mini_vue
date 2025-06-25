@@ -1,3 +1,4 @@
+import { effect } from "../reactivity/effect";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -12,52 +13,63 @@ export function createRenderer(options) {
 
   function render(vnode, container) {
     // 调用patch
-    patch(vnode, container, null);
+    patch(null, vnode, container, null);
   }
 
-  function patch(vnode, container, parentComponent) {
+  function patch(n1, n2, container, parentComponent) {
     // 基于 vnode 的类型进行不同类型的组件处理
-    const { type, shapeFlag } = vnode;
+    const { type, shapeFlag } = n2;
     // Fragment -> 只渲染 children
     switch (type) {
       case Fragment:
         // 处理 Fragment 类型
-        processFragment(vnode, container, parentComponent);
+        processFragment(n1, n2, container, parentComponent);
         break;
       case Text:
         // 处理 Text 类型
-        processText(vnode, container);
+        processText(n1, n2, container);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
           // 处理 element 类型
-          processElement(vnode, container, parentComponent);
+          processElement(n1, n2, container, parentComponent);
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
           // 处理 component 类型
-          processComponent(vnode, container, parentComponent);
+          processComponent(n1, n2, container, parentComponent);
         }
         break;
     }
   }
 
   // 处理 Text 类型
-  function processText(vnode, container) {
-    const { children } = vnode;
+  function processText(n1, n2, container) {
+    const { children } = n2;
     // 创建文本节点
-    const textNode = (vnode.el = document.createTextNode(children));
+    const textNode = (n2.el = document.createTextNode(children));
     // 将文本节点添加到容器中
     container.append(textNode);
   }
 
   // 处理 Fragment 类型
-  function processFragment(vnode: any, container: any, parentComponent) {
+  function processFragment(n1, n2: any, container: any, parentComponent) {
     // Fragment 只渲染 children
-    mountChildren(vnode, container, parentComponent);
+    mountChildren(n2, container, parentComponent);
   }
 
   // 处理 Element 类型
-  function processElement(vnode, container, parentComponent) {
-    mountElement(vnode, container, parentComponent);
+  function processElement(n1, n2, container, parentComponent) {
+    if (!n1) {
+      // 初始化元素节点
+      mountElement(n2, container, parentComponent);
+    } else {
+      // 更新元素节点
+      patchElement(n1, n2);
+    }
+  }
+
+  function patchElement(n1, n2) {
+    console.log("n1", n1);
+    console.log("n2", n2);
   }
 
   // 挂载 Element 元素
@@ -86,13 +98,13 @@ export function createRenderer(options) {
   // 遍历 vnode 的 children 做 patch 操作
   function mountChildren(vnode, container, parentComponent) {
     vnode.children.forEach((v) => {
-      patch(v, container, parentComponent);
+      patch(null, v, container, parentComponent);
     });
   }
 
   // 处理 component 类型
-  function processComponent(vnode: any, container: any, parentComponent) {
-    mountComponent(vnode, container, parentComponent);
+  function processComponent(n1, n2: any, container: any, parentComponent) {
+    mountComponent(n2, container, parentComponent);
   }
 
   // 组件初始化
@@ -106,14 +118,27 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance, initialVNode, container) {
-    const { proxy } = instance;
-    const subTree = instance.render.call(proxy);
+    effect(() => {
+      if (!instance.isMounted) {
+        const { proxy } = instance;
+        const subTree = (instance.subTree = instance.render.call(proxy));
+        // vnode -> patch
+        // vnode -> element -> mountElement
+        patch(null, subTree, container, instance);
+        // element -> mount
+        initialVNode.el = subTree.el;
+        instance.isMounted = true;
+      } else {
+        const { proxy } = instance;
+        const subTree = instance.render.call(proxy);
+        const preSubTree = instance.subTree;
+        instance.subTree = subTree;
 
-    // vnode -> patch
-    // vnode -> element -> mountElement
-    patch(subTree, container, instance);
-    // element -> mount
-    initialVNode.el = subTree.el;
+        patch(preSubTree, subTree, container, instance);
+        // element -> mount
+        initialVNode.el = subTree.el;
+      }
+    });
   }
 
   return {
