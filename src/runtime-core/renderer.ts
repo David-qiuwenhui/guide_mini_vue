@@ -1,4 +1,5 @@
 import { effect } from "../reactivity/effect";
+import { EMPTY_OBJ } from "../shared";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -70,6 +71,38 @@ export function createRenderer(options) {
   function patchElement(n1, n2) {
     console.log("n1", n1);
     console.log("n2", n2);
+
+    const oldProp = n1.props || EMPTY_OBJ;
+    const newProp = n2.props || EMPTY_OBJ;
+    const el = (n2.el = n1.el);
+    patchProp(el, oldProp, newProp);
+  }
+
+  function patchProp(el, oldProps, newProps) {
+    // base case: 如果 oldProps 和 newProps 相同，则不需要处理
+    if (oldProps === newProps) {
+      return;
+    }
+
+    // 1. 处理属性的更新变化
+    for (const key in newProps) {
+      const prevProp = oldProps[key];
+      const nextProp = newProps[key];
+
+      if (prevProp !== nextProp) {
+        hostPatchProp(el, key, prevProp, nextProp);
+      }
+    }
+
+    // 2. 如果 oldProps 中的属性在 newProps 中不存在，则需要移除该属性
+    if (oldProps !== EMPTY_OBJ) {
+      for (const key in oldProps) {
+        if (!(key in newProps)) {
+          const prevProp = oldProps[key];
+          hostPatchProp(el, key, prevProp, null);
+        }
+      }
+    }
   }
 
   // 挂载 Element 元素
@@ -81,7 +114,7 @@ export function createRenderer(options) {
     // props 属性绑定处理
     for (const key in props) {
       const value = props[key];
-      hostPatchProp(el, key, value);
+      hostPatchProp(el, key, null, value);
     }
 
     // 处理 children
@@ -127,6 +160,7 @@ export function createRenderer(options) {
         patch(null, subTree, container, instance);
         // element -> mount
         initialVNode.el = subTree.el;
+        // 标记组件已挂载
         instance.isMounted = true;
       } else {
         const { proxy } = instance;
@@ -135,8 +169,6 @@ export function createRenderer(options) {
         instance.subTree = subTree;
 
         patch(preSubTree, subTree, container, instance);
-        // element -> mount
-        initialVNode.el = subTree.el;
       }
     });
   }

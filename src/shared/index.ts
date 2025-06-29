@@ -1,5 +1,8 @@
 export const extend = Object.assign;
 
+// 默认的空对象
+export const EMPTY_OBJ = {};
+
 // 检查值是否为对象
 export const isObject = (val) => {
   return val !== null && typeof val === "object";

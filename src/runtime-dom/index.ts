@@ -4,16 +4,21 @@ function createElement(type) {
   return document.createElement(type);
 }
 
-function patchProp(el, key, value) {
+function patchProp(el, key, prevValue, nextValue) {
   // 判断属性是否为绑定事件 on + Event name
   const isOn = (key: string) => /^on[A-Z]/.test(key);
   if (isOn(key)) {
     // 绑定事件 onClick -> click, onMouseOver -> mouseover
     const event = key.slice(2).toLowerCase();
-    el.addEventListener(event, value);
+    el.addEventListener(event, nextValue);
   } else {
-    // 绑定属性
-    el.setAttribute(key, value);
+    if (nextValue === null || nextValue === undefined) {
+      // 如果 nextValue 为 null 或 undefined，移除属性
+      el.removeAttribute(key);
+    } else {
+      // 绑定属性
+      el.setAttribute(key, nextValue);
+    }
   }
 }
 
