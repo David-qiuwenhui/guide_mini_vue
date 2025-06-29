@@ -22,15 +22,31 @@ function patchProp(el, key, prevValue, nextValue) {
   }
 }
 
+// 将元素插入到父元素中
 function insert(el, parent) {
   // 将 el 添加到 container 中
   parent.append(el);
+}
+
+// 移除元素
+function remove(child) {
+  const parent = child.parentNode;
+  if (parent) {
+    parent.removeChild(child);
+  }
+}
+
+// 设置元素文本内容
+function setElementText(el, text) {
+  el.textContent = text;
 }
 
 const renderer: any = createRenderer({
   createElement,
   patchProp,
   insert,
+  remove,
+  setElementText,
 });
 
 export function createApp(...args) {

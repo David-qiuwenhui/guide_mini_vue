@@ -10,6 +10,8 @@ export function createRenderer(options) {
     createElement: hostCreateElement,
     patchProp: hostPatchProp,
     insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText,
   } = options;
 
   function render(vnode, container) {
@@ -17,6 +19,13 @@ export function createRenderer(options) {
     patch(null, vnode, container, null);
   }
 
+  /**
+   *
+   * @param n1 更新前的 vnode
+   * @param n2 更新后的 vnode
+   * @param container 容器
+   * @param parentComponent 父组件实例
+   */
   function patch(n1, n2, container, parentComponent) {
     // 基于 vnode 的类型进行不同类型的组件处理
     const { type, shapeFlag } = n2;
@@ -54,7 +63,7 @@ export function createRenderer(options) {
   // 处理 Fragment 类型
   function processFragment(n1, n2: any, container: any, parentComponent) {
     // Fragment 只渲染 children
-    mountChildren(n2, container, parentComponent);
+    mountChildren(n2.children, container, parentComponent);
   }
 
   // 处理 Element 类型
@@ -64,18 +73,60 @@ export function createRenderer(options) {
       mountElement(n2, container, parentComponent);
     } else {
       // 更新元素节点
-      patchElement(n1, n2);
+      patchElement(n1, n2, parentComponent);
     }
   }
 
-  function patchElement(n1, n2) {
+  function patchElement(n1, n2, parentComponent) {
     console.log("n1", n1);
     console.log("n2", n2);
 
     const oldProp = n1.props || EMPTY_OBJ;
     const newProp = n2.props || EMPTY_OBJ;
     const el = (n2.el = n1.el);
+
+    patchChildren(n1, n2, el, parentComponent);
     patchProp(el, oldProp, newProp);
+  }
+
+  function patchChildren(n1, n2, container, parentComponent) {
+    // children 类型
+    const prevShapeFlag = n1.shapeFlag;
+    const nextShapeFlag = n2.shapeFlag;
+
+    // 更新的 children 实际内容
+    const c1 = n1.children;
+    const c2 = n2.children;
+
+    if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 如果新节点是文本子节点
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 1. 如果旧节点是数组子节点，则需要清空旧的子节点
+        unmountChildren(n1.children);
+      }
+      // 2. 设置新的文本内容
+      if (c1 !== c2) {
+        hostSetElementText(container, c2);
+      }
+    } else {
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 如果旧节点是文本子节点
+        // 1. 清空旧的文本内容
+        hostSetElementText(container, "");
+        // 2. 挂载新的 children
+        // TODO: container 和 parentComponent 的区别
+        mountChildren(c2, container, parentComponent);
+      }
+    }
+  }
+
+  // 卸载 children
+  function unmountChildren(children) {
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i].el;
+      // remove children
+      hostRemove(el);
+    }
   }
 
   function patchProp(el, oldProps, newProps) {
@@ -121,7 +172,7 @@ export function createRenderer(options) {
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      mountChildren(vnode, el, parentComponent);
+      mountChildren(vnode.children, el, parentComponent);
     }
 
     // 将 el 添加到 container 中
@@ -129,8 +180,8 @@ export function createRenderer(options) {
   }
 
   // 遍历 vnode 的 children 做 patch 操作
-  function mountChildren(vnode, container, parentComponent) {
-    vnode.children.forEach((v) => {
+  function mountChildren(children, container, parentComponent) {
+    children.forEach((v) => {
       patch(null, v, container, parentComponent);
     });
   }
