@@ -23,9 +23,9 @@ function patchProp(el, key, prevValue, nextValue) {
 }
 
 // 将元素插入到父元素中
-function insert(el, parent) {
-  // 将 el 添加到 container 中
-  parent.append(el);
+function insert(child, parent, anchor) {
+  // 将 el 添加到 container 中， anchor 是插入位置的锚点
+  parent.insertBefore(child, anchor || null);
 }
 
 // 移除元素

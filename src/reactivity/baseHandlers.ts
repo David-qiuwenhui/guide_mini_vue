@@ -1,5 +1,5 @@
 import { track, trigger } from "./effect";
-import { reactive, ReactiveFlags, readonly, shallowReadonly } from "./reactive";
+import { reactive, ReactiveFlags, readonly } from "./reactive";
 import { extend, isObject } from "../shared/index";
 
 // 缓存机制
