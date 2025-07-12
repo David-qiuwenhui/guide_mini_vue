@@ -221,10 +221,10 @@ export function createRenderer(options) {
 
         const preChild = c1[i];
         let newIndex;
-        if (preChild.key !== null) {
+        if (preChild.key !== null && preChild.key !== undefined) {
           newIndex = keyToNewIndexMap.get(preChild.key);
         } else {
-          for (let j = s2; j < e2; j++) {
+          for (let j = s2; j <= e2; j++) {
             if (isSameVNodeType(preChild, c2[j])) {
               newIndex = j;
 
