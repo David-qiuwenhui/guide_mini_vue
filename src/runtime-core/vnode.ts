@@ -10,6 +10,10 @@ export function createVNode(type, props?, children?) {
     props,
     key: props && props.key,
     children,
+    // 存储组件实例
+    component: null,
+    // 下一步更新的虚拟节点
+    next: null,
     shapeFlag: getShapeFlag(type),
     el: null,
   };
