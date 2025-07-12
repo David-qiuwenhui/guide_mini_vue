@@ -3,6 +3,7 @@ import { EMPTY_OBJ } from "../shared";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
+import { getSequence } from "./helpers/getSequence";
 import { Fragment, Text } from "./vnode";
 
 export function createRenderer(options) {
@@ -199,6 +200,13 @@ export function createRenderer(options) {
       let patched = 0; // 已经处理的节点数量
       let keyToNewIndexMap = new Map(); // 用于存储新的节点的
 
+      const newIndexToOldIndexMap = new Array(toBePatched);
+      for (let i = 0; i < toBePatched; i++) {
+        newIndexToOldIndexMap[i] = 0;
+      }
+      let moved = false;
+      let maxNewIndexSoFar = 0;
+
       for (let i = s2; i <= e2; i++) {
         const nextChild = c2[i];
         keyToNewIndexMap.set(nextChild.key, i);
@@ -229,8 +237,41 @@ export function createRenderer(options) {
           // 如果没有找到新的节点，则卸载旧的节点
           hostRemove(preChild.el);
         } else {
+          if (newIndex >= maxNewIndexSoFar) {
+            // 如果新的节点的索引大于等于最大的索引，则不需要移动
+            maxNewIndexSoFar = newIndex;
+          } else {
+            // 如果新的节点的索引小于最大的索引，则需要移动
+            moved = true;
+          }
+
+          newIndexToOldIndexMap[newIndex - s2] = i + 1; // +1 是为了避免 0 的情况
           patch(preChild, c2[newIndex], container, parentComponent, null);
           patched++;
+        }
+      }
+
+      const increasingNewIndexSequence = moved
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
+      console.log(
+        "🚀 ~ createRenderer ~ increasingNewIndexSequence:",
+        increasingNewIndexSequence
+      );
+      let j = increasingNewIndexSequence.length - 1;
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + s2; // 新的节点的索引
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
+        if (newIndexToOldIndexMap[i] === 0) {
+          patch(null, nextChild, container, parentComponent, anchor);
+        } else if (moved) {
+          if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            console.log("移动位置");
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
         }
       }
     }
